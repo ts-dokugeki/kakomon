@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#1f5b46">
+<title>毒劇物 試験練習</title>
+<style>
+:root{--green:#1f5b46;--pale:#eef6f1;--ink:#202923;--muted:#5e6a63;--line:#d9e2dc;--bg:#f5f7f5;--white:#fff;--red:#a62d2d}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Noto Sans JP",sans-serif;line-height:1.55}
+header{background:var(--green);color:#fff;padding:20px 16px 18px}header .wrap,main{max-width:760px;margin:auto}h1{font-size:1.35rem;margin:0 0 4px}header p{margin:0;font-size:.92rem;opacity:.92}
+main{padding:16px;display:grid;gap:14px}.card{background:var(--white);border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:0 2px 8px #193c2610}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.row>*{flex:1;min-width:135px}label{display:block;font-size:.9rem;font-weight:650;margin-bottom:6px}select,input[type=file]{width:100%;padding:11px;border:1px solid #b9c8bf;border-radius:10px;background:#fff;font:inherit}
+button{font:inherit;font-weight:650;border:0;border-radius:11px;padding:12px 15px;cursor:pointer}button:disabled{opacity:.45;cursor:not-allowed}.primary{background:var(--green);color:#fff}.secondary{background:var(--pale);color:var(--green);border:1px solid #c8ded0}.quiet{background:#fff;border:1px solid var(--line);color:var(--ink)}.small{font-size:.88rem;padding:9px 11px}
+.muted{color:var(--muted);font-size:.9rem}.notice{background:#fff8e7;border:1px solid #efdfb4;padding:11px 12px;border-radius:11px;font-size:.88rem}
+.progress{height:7px;background:#e6ece8;border-radius:20px;overflow:hidden;margin:10px 0 15px}.progress div{height:100%;width:0;background:var(--green);transition:width .2s}
+.qmeta{display:flex;justify-content:space-between;gap:8px;color:var(--muted);font-size:.88rem}.qtext{font-size:1.12rem;font-weight:700;margin:14px 0;white-space:pre-line}.choices{display:grid;gap:9px}.choice{text-align:left;width:100%;background:#fff;border:1px solid #cbd6cf;color:var(--ink);display:flex;gap:10px;align-items:flex-start}.letter{display:inline-grid;place-items:center;min-width:27px;height:27px;border-radius:50%;background:#edf2ee;color:var(--green);font-weight:750}.choice.correct{border-color:#3b8a60;background:#eff9f2}.choice.wrong{border-color:#bd5656;background:#fff2f2}.feedback{margin-top:14px;padding:13px;border-radius:12px;background:#f0f5f1}.feedback.good{border:1px solid #b7d8c1}.feedback.bad{border:1px solid #e4bcbc}.feedback strong{display:block;margin-bottom:4px}.hidden{display:none!important}.score{font-size:2rem;font-weight:800;color:var(--green)}.report-area{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}.report-btn{width:100%;background:#fff8e7;color:#72551a;border:1px solid #ead9a5}.foot{font-size:.8rem;color:var(--muted);text-align:center;padding:4px 0 18px}
+@media(min-width:600px){main{padding:22px}.card{padding:20px}}
+</style>
+</head>
+<body>
+<header><div class="wrap"><h1>毒劇物 試験練習</h1><p>農業用品目の学習用・ログイン不要の試作版</p></div></header>
+<main>
+  <section class="card">
+    <h2 style="font-size:1.05rem;margin:0 0 12px">出題設定</h2>
+    <div class="row">
+      <div><label for="category">分野</label><select id="category"><option value="all">すべての分野</option></select></div>
+      <div><label for="count">出題数</label><select id="count"><option>5</option><option selected>10</option><option>20</option><option value="all">全問</option></select></div>
+    </div>
+    <div class="row" style="margin-top:13px"><button class="primary" id="start">ランダム出題を始める</button><button class="secondary" id="template">問題CSVテンプレート</button></div>
+  </section>
+  <section class="card">
+    <h2 style="font-size:1.05rem;margin:0 0 8px">問題データの読み込み</h2>
+    <p class="muted" style="margin-top:0">管理者が用意したCSVファイルを選ぶと、問題を入れ替えられます。Googleアカウントは不要です。</p>
+    <label for="csvfile">問題CSVファイル</label><input id="csvfile" type="file" accept=".csv,text/csv">
+    <p id="dataStatus" class="muted" aria-live="polite">現在は動作確認用のサンプル問題が入っています。</p>
+    <div class="notice">サンプル問題は画面動作の確認用で、過去問・本番の試験対策問題ではありません。実際に使う際は、内容を確認した問題データに差し替えてください。</div>
+  </section>
+  <section class="card hidden" id="quiz">
+    <div class="qmeta"><span id="position">問題 1 / 5</span><span id="categoryTag"></span></div>
+    <div class="progress"><div id="bar"></div></div>
+    <div id="question" class="qtext"></div>
+    <div id="choices" class="choices"></div>
+    <div class="report-area"><button id="report" class="report-btn">問題文・正答の間違いを報告</button><p class="muted" style="margin:7px 0 0">気になる点があれば、報告フォームからお知らせください。</p></div>
+    <div id="feedback" class="feedback hidden" aria-live="polite"></div>
+    <div class="row" style="margin-top:15px"><button id="next" class="primary" disabled>次の問題へ</button><button id="quit" class="quiet">終了する</button></div>
+  </section>
+  <section class="card hidden" id="result">
+    <h2 style="font-size:1.15rem;margin:0 0 6px">今回の結果</h2>
+    <div class="score" id="score">0 / 0</div><p id="percent" style="margin:0 0 10px"></p><p id="resultText" class="muted"></p>
+    <button class="primary" id="again">もう一度挑戦する</button>
+  </section>
+</main>
+<div class="foot">試作版 v0.1 ・ 学習記録は保存しません</div>
+<script>
+const demoQuestions = [
+ {number:1,category:"動作確認",question:"【サンプル】このアプリで問題を解いたあと、正解と解説はいつ表示されますか？",A:"回答したあと",B:"アプリを閉じたあと",C:"翌日",D:"表示されない",answer:"A",explanation:"動作確認用のサンプル問題です。回答後に正誤と解説を表示する機能を確認できます。"},
+ {number:2,category:"動作確認",question:"【サンプル】出題数を「5」に設定すると、最大で何問出題されますか？",A:"3問",B:"5問",C:"10問",D:"全問のみ",answer:"B",explanation:"動作確認用のサンプル問題です。設定した出題数で問題が出ることを確認できます。"},
+ {number:3,category:"動作確認",question:"【サンプル】問題を入れ替えるときに読み込むファイル形式はどれですか？",A:"CSV",B:"MP3",C:"PNG",D:"ZIPのみ",answer:"A",explanation:"問題CSVテンプレートをダウンロードし、列の形式に合わせて問題を登録できます。"}
+];
+let questions=[...demoQuestions], session=[], idx=0, correct=0, answered=false;
+const $=id=>document.getElementById(id);
+function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function refreshCategories(){const sel=$("category"), old=sel.value; const cats=[...new Set(questions.map(q=>q.category||"その他"))].sort();sel.innerHTML='<option value="all">すべての分野</option>'+cats.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join("");if(cats.includes(old))sel.value=old;}
+function parseCSV(text){let rows=[],row=[],field="",quoted=false;for(let i=0;i<text.length;i++){let c=text[i];if(quoted){if(c==='"'&&text[i+1]==='"'){field+='"';i++;}else if(c==='"')quoted=false;else field+=c;}else{if(c==='"')quoted=true;else if(c===','){row.push(field);field="";}else if(c==='\n'){row.push(field);rows.push(row);row=[];field="";}else if(c!=='\r')field+=c;}}if(field.length||row.length){row.push(field);rows.push(row);}return rows;}
+$("csvfile").addEventListener("change",async e=>{const f=e.target.files[0];if(!f)return;try{const txt=await f.text();const rows=parseCSV(txt);if(rows.length<2)throw Error("問題データがありません");const headers=rows[0].map(x=>x.trim().toLowerCase());const required=["category","question","a","b","c","d","answer","explanation"];const missing=required.filter(h=>!headers.includes(h));if(missing.length)throw Error("必要な列がありません: "+missing.join(", "));const parsed=rows.slice(1).filter(r=>r.some(v=>v.trim()!=="")).map(r=>{let o={};headers.forEach((h,i)=>o[h]=(r[i]||"").trim());return {number:rows.indexOf(r),category:o.category||"その他",question:o.question,A:o.a,B:o.b,C:o.c,D:o.d,answer:o.answer.toUpperCase(),explanation:o.explanation};}).filter(q=>q.question&&["A","B","C","D"].includes(q.answer)&&q[q.answer]);if(!parsed.length)throw Error("有効な問題が見つかりません。回答欄は A / B / C / D で入力してください。");questions=parsed;refreshCategories();$("dataStatus").textContent=`読み込み成功：${questions.length}問`;alert(`${questions.length}問を読み込みました。`);}catch(err){alert("CSVを読み込めませんでした。\n"+err.message);}});
+function start(){let pool=questions.filter(q=>$("category").value==="all"||q.category===$("category").value);if(!pool.length){alert("この分野には問題がありません。");return;}pool=[...pool].sort(()=>Math.random()-.5);const n=$("count").value==="all"?pool.length:Math.min(Number($("count").value),pool.length);session=pool.slice(0,n);idx=0;correct=0;$("result").classList.add("hidden");$("quiz").classList.remove("hidden");renderQuestion();$("quiz").scrollIntoView({behavior:"smooth",block:"start"});}
+function openReport(){const q=session[idx];if(!q)return;const base="https://docs.google.com/forms/d/e/1FAIpQLSekuE6i9Suda1xbo-LHRYw2bnoEYHlgXkT5z8NBsqfwNqfSTA/viewform?usp=pp_url";const params=new URLSearchParams();params.set("entry.1985070706",String(q.number||idx+1));params.set("entry.1239902156","問題文の誤り・不足");const choiceText=["A","B","C","D"].filter(k=>String(q[k]??"").trim()).map(k=>`${k} ${q[k]}`).join(" / ");params.set("entry.1400974285",`問題文：${q.question}\n選択肢：${choiceText||"（登録なし）"}\n登録正答：${q.answer} ${q[q.answer]||""}`);params.set("entry.1792452620","");window.open(base+"&"+params.toString(),"_blank","noopener");}
+function renderQuestion(){answered=false;const q=session[idx];$("position").textContent=`問題 ${idx+1} / ${session.length}`;$("categoryTag").textContent=q.category;$("bar").style.width=`${idx/session.length*100}%`;$("question").textContent=q.question;$("choices").innerHTML="";$("feedback").className="feedback hidden";$("feedback").innerHTML="";$("next").disabled=true;$("next").textContent=idx===session.length-1?"結果を見る":"次の問題へ";["A","B","C","D"].filter(k=>String(q[k]??"").trim()!=="").forEach(k=>{const b=document.createElement("button");b.className="choice";b.dataset.key=k;b.innerHTML=`<span class="letter">${k}</span><span>${esc(q[k])}</span>`;b.addEventListener("click",()=>answer(k));$("choices").appendChild(b);});}
+function answer(k){if(answered)return;answered=true;const q=session[idx],ok=k===q.answer;if(ok)correct++;[...$("choices").children].forEach(b=>{b.disabled=true;const key=b.dataset.key;if(key===q.answer)b.classList.add("correct");if(key===k&&!ok)b.classList.add("wrong");});const fb=$("feedback");fb.className="feedback "+(ok?"good":"bad");fb.innerHTML=`<strong>${ok?"正解です！":"不正解です"}</strong><div>正解：${q.answer}　${esc(q[q.answer])}</div><p style="margin:8px 0 0">${esc(q.explanation||"解説は登録されていません。")}</p>`;$("next").disabled=false;$("bar").style.width=`${(idx+1)/session.length*100}%`;}
+function finish(){ $("quiz").classList.add("hidden");$("result").classList.remove("hidden");$("score").textContent=`${correct} / ${session.length} 問`;$("percent").textContent=`正答率：${Math.round(correct/session.length*100)}%`;$("resultText").textContent="この試作版では学習履歴を保存しません。";$("result").scrollIntoView({behavior:"smooth",block:"start"});}
+$("report").addEventListener("click",openReport);$("start").addEventListener("click",start);$("next").addEventListener("click",()=>{if(!answered)return;if(idx<session.length-1){idx++;renderQuestion();}else finish();});$("quit").addEventListener("click",()=>{$("quiz").classList.add("hidden");});$("again").addEventListener("click",start);
+$("template").addEventListener("click",()=>{const csv='category,question,A,B,C,D,answer,explanation\\n毒物・劇物,ここに問題文を入力,選択肢A,選択肢B,選択肢C,選択肢D,A,ここに解説を入力\\n';const blob=new Blob(["\\ufeff"+csv],{type:"text/csv;charset=utf-8"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="毒劇物_問題テンプレート.csv";a.click();URL.revokeObjectURL(a.href);});
+refreshCategories();
+</script>
+</body>
+</html>
